@@ -1,0 +1,22 @@
+pluginManagement {
+    repositories {
+
+        mavenLocal()
+        gradlePluginPortal()
+
+        maven {
+            url = uri('https://repo.foojay.io/maven/')
+        }
+
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.10.0'
+}
+
+rootProject.name = 'cascara-example-theming'
+
+include('app')
+

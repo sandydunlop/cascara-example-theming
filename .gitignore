@@ -1,0 +1,6 @@
+/.gradle
+.project
+/.settings
+app/.classpath
+app/.settings/org.eclipse.jdt.core.prefs
+app/.settings/org.eclipse.buildship.core.prefs

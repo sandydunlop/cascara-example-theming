@@ -1,0 +1,196 @@
+plugins {
+    id 'java'
+    id 'application'
+    id("org.openjfx.javafxplugin") version "0.1.0"
+}
+
+
+group = 'io.github.qishr'
+version = '1.0.0'
+
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven { url = 'https://repo.gradle.org/gradle/libs-releases' }
+    maven { url = 'https://packages.jetbrains.team/maven/p/ij/intellij-dependencies' }
+}
+
+
+sourceSets {
+    main {
+        java {
+            srcDir 'io.github.qishr.cascara.studio/src/main/java'
+        }
+        resources {
+            srcDirs = ["src/main/resources"]
+        }
+    }
+    macos {
+        java.srcDirs = ['src/macos/java']
+        compileClasspath += main.output
+        runtimeClasspath += main.output
+    }
+}
+
+
+configurations {
+    macosImplementation.extendsFrom(implementation)
+    // markista
+    toolingClasspath
+}
+
+
+dependencies {
+    implementation "io.github.qishr:cascara-ui:0.2.1"
+
+    // Transitive dependencies of cascara.ui...
+    implementation "io.github.qishr:cascara-common:1.0.0"
+    implementation "io.github.qishr:cascara-common-io:0.2.0"
+    implementation "io.github.qishr:cascara-lang-yaml:0.2.0"
+    implementation "io.github.qishr:cascara-schema:0.2.0"
+}
+
+
+configurations.implementation.incoming.beforeResolve {
+    // Finds the specific Maven Impl artifact
+    dependencies.all { dependency ->
+        if (dependency.group == 'org.apache.maven' && dependency.name == 'maven-impl') {
+            // Apply a rule to the artifact's files before they are placed on the module path.
+            // This is the correct way to strip resources from a dependency artifact in Gradle.
+            dependency.artifact {
+                it.file = project.zipTree(it.file).exclude("org/apache/maven/model/**").files.iterator().next()
+            }
+        }
+    }
+}
+
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+
+javafx {
+    version = "25"
+    modules = [ 'javafx.controls', 'javafx.graphics' ]
+}
+
+
+application {
+    mainClass.set("io.github.qishr.cascara.example.theming.Launcher")
+    mainModule.set("cascara.example.theming")
+    applicationDefaultJvmArgs = ['--add-reads', 'cascara.example.theming=ALL-UNNAMED']
+}
+
+
+tasks.withType(JavaExec) {
+    jvmArgs = ['--add-reads', 'cascara.example.theming=ALL-UNNAMED',
+               '--enable-native-access=javafx.graphics',
+               '--enable-native-access=javafx.media'
+            ]
+}
+
+
+tasks.named('run', JavaExec) {
+    if (project.hasProperty('excludeMacos')) {
+
+        def macosFilter = { file ->
+            !file.name.contains('cascara.macos.menus') && !file.name.contains('nsmenufx')
+        }
+
+        classpath = classpath.filter(macosFilter)
+
+        // Note: We avoid referencing 'modulePath' directly, as its public availability is unreliable.
+        // Filtering the classpath is sufficient to remove the JARs from the runtime environment,
+        // which prevents both native hooks and the ServiceLoader from finding them.
+
+        println("INFO: macOS module and nsmenufx successfully removed from run classpath/modulepath.")
+    }
+}
+
+
+tasks.named('build') {
+    finalizedBy(tasks.named('runtimeModulePath'))
+}
+
+
+tasks.register('runtimeModulePath', Copy) {
+    dependsOn tasks.named('jar')
+    from configurations.runtimeClasspath
+    from tasks.named('jar')
+
+    exclude '*-maven-*.jar'
+    exclude 'plexus-*-*.jar'
+    exclude 'jansi-*.jar'
+    exclude 'commons-cli-*.jar'
+
+    exclude "jna-*-jpms-**.jar"
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    def modulePathDir = new File(rootProject.buildDir, 'modulepath')
+    modulePathDir.mkdirs()
+    into modulePathDir
+
+    doLast {
+        println "Finished copying files to modulepath."
+    }
+}
+
+
+tasks.register('buildNonMacosJar', Jar) {
+    archiveBaseName.set('cascara-studio')
+    destinationDirectory = file("$buildDir/libs/standard")
+    from sourceSets.main.output
+    // Exclude any macOS-related resources if necessary
+}
+
+
+tasks.register('buildMacosJar', Jar) {
+    archiveBaseName.set('cascara-studio-macos')
+    destinationDirectory = file("$buildDir/libs/macos")
+    from sourceSets.main.output, sourceSets.macos.output
+}
+
+
+jar {
+    archiveBaseName.set("cascara-example-theming")
+    manifest {
+        attributes( 'Main-Class': 'io.github.qishr.cascara.example.theming.Launcher',
+                    'Implementation-Title': 'cascara-example-theming',
+                    'Implementation-Version': version,
+                    'Implementation-Vendor': group,
+                    'Automatic-Module-Name': 'cascara.example.theming',
+                    'Build-Date': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"))
+    }
+}
+
+
+//
+// Experimental
+//
+
+tasks.register('assembleAll') {
+    group = 'build'
+    description = 'Safely builds JARs then assembles the distribution'
+    dependsOn(allprojects.findAll { it != project }.collect { it.tasks.withType(Jar) })
+    finalizedBy(':cascara-example-theming:assemble')
+}
+
+
+// Tell the global dependency resolver to treat projects as modules
+dependencies {
+    components.all { ComponentMetadataDetails details ->
+        if (details.id.group.startsWith("io.github.qishr") || details.id.name.startsWith("cascara-")) {
+            details.withVariant("runtimeElements") {
+                attributes {
+                    attribute(Attribute.of("javaModule", Boolean), true)
+                }
+            }
+        }
+    }
+}
+

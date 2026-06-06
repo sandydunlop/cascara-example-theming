@@ -1,2 +1,2 @@
-# cascara-example-theming
+# cascara-example-themeing
 Cascara Theming Example
