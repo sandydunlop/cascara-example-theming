@@ -1,12 +1,17 @@
 package io.github.qishr.cascara.example.theming;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import io.github.qishr.cascara.common.diagnostic.GlobalReporter;
 import io.github.qishr.cascara.common.diagnostic.Reporter;
+import io.github.qishr.cascara.common.diagnostic.code.GenericDiagnosticCode;
+import io.github.qishr.cascara.ui.l10n.Localization;
 
 import javafx.css.CssMetaData;
 import javafx.css.Styleable;
@@ -49,6 +54,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
 
 
 public class Samples {
@@ -93,40 +99,40 @@ public class Samples {
 
     public void printComputedCssValuesFixed(Node node) {
 
-        REPORTER.info("--- Computed CSS Values for Node: " + node.getClass().getSimpleName() + " ---");
+        // REPORTER.info(GenericDiagnosticCode.INFO, "--- Computed CSS Values for Node: " + node.getClass().getSimpleName() + " ---");
 
-        // 1. Iterate using raw types (or the less restrictive wildcard form)
-        for (CssMetaData<?, ?> metaData : node.getCssMetaData()) {
-            try {
-                // 2. Cast the metaData to its most basic Styleable form.
-                //    This is an unchecked operation, but is necessary due to type erasure
-                //    and the structure of the JavaFX CSS internal API.
-                @SuppressWarnings("unchecked")
-                CssMetaData<Styleable, ?> styleableMetaData = (CssMetaData<Styleable, ?>) metaData;
+        // // 1. Iterate using raw types (or the less restrictive wildcard form)
+        // for (CssMetaData<?, ?> metaData : node.getCssMetaData()) {
+        //     try {
+        //         // 2. Cast the metaData to its most basic Styleable form.
+        //         //    This is an unchecked operation, but is necessary due to type erasure
+        //         //    and the structure of the JavaFX CSS internal API.
+        //         @SuppressWarnings("unchecked")
+        //         CssMetaData<Styleable, ?> styleableMetaData = (CssMetaData<Styleable, ?>) metaData;
 
-                // 3. Now, call the method, casting the Node to the required Styleable interface
-                @SuppressWarnings("unchecked")
-                StyleableProperty<Object> styleableProperty =
-                    (StyleableProperty<Object>) styleableMetaData.getStyleableProperty((Styleable) node);
+        //         // 3. Now, call the method, casting the Node to the required Styleable interface
+        //         @SuppressWarnings("unchecked")
+        //         StyleableProperty<Object> styleableProperty =
+        //             (StyleableProperty<Object>) styleableMetaData.getStyleableProperty((Styleable) node);
 
-                if (styleableProperty != null) {
-                    Object computedValue = styleableProperty.getValue();
+        //         if (styleableProperty != null) {
+        //             Object computedValue = styleableProperty.getValue();
 
-                    REPORTER.info(
-                        "%-25s: %s",
-                        metaData.getProperty(),
-                        computedValue
-                    );
-                } else {
-                    REPORTER.info("%-25s: (Property instance not found)%n", metaData.getProperty());
-                }
-            } catch (Exception e) {
-                // If the property lookup fails (e.g., internal error), log the exception
-                REPORTER.error(null, "Error fetching %s: %s%n", metaData.getProperty(), e.getMessage());
-            }
-        }
+        //             REPORTER.info(
+        //                 "%-25s: %s",
+        //                 metaData.getProperty(),
+        //                 computedValue
+        //             );
+        //         } else {
+        //             REPORTER.info("%-25s: (Property instance not found)%n", metaData.getProperty());
+        //         }
+        //     } catch (Exception e) {
+        //         // If the property lookup fails (e.g., internal error), log the exception
+        //         REPORTER.error(GenericDiagnosticCode.ERROR, "Error fetching "+metaData.getProperty()+": "+e.getMessage()+"\n");
+        //     }
+        // }
 
-        REPORTER.info("--------------------------------------------------");
+        // REPORTER.info("--------------------------------------------------");
     }
 
     public VBox buildBoxesShowcase() {
@@ -138,7 +144,7 @@ public class Samples {
 
         VBox box = new VBox();
         box.setSpacing(20);
-        box.setPadding(new Insets(10));
+        box.setPadding(new Insets(20, 10, 10, 10));
         box.getChildren().addAll(titledPane);
         return box;
     }
@@ -217,7 +223,7 @@ public class Samples {
         box.getChildren().add(grid);
         box.setAlignment(Pos.TOP_CENTER);
         box.setSpacing(20);
-        box.setPadding(new Insets(10));
+        box.setPadding(new Insets(20, 10, 10, 10));
 
         // vBox.setPadding(new Insets(10));
 
@@ -353,7 +359,7 @@ public class Samples {
 
         VBox samples = new VBox(cellCheckBox, gridPane);
         samples.setSpacing(20);
-        samples.setPadding(new Insets(10));
+        samples.setPadding(new Insets(20, 10, 10, 10));
         return samples;
     }
 

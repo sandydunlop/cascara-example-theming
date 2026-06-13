@@ -5,11 +5,9 @@ import io.github.qishr.cascara.ui.theme.ThemeEngine;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
-import javafx.scene.control.Separator;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -35,7 +33,6 @@ public class Launcher extends Application {
         });
 
         HBox choserBox = new HBox(16, new Label("Theme:"), themeChooser);
-        // choserBox.setPadding(new Insets(16));
         choserBox.setAlignment(Pos.CENTER);
 
         Samples samples = new Samples();
@@ -53,7 +50,7 @@ public class Launcher extends Application {
         primaryStage.show();
 
         String title = String.format(
-            "Cascara Themeing Demo (%s)",
+            "Cascara Theming Demo (%s)",
             ThemeEngine.class.getModule().getDescriptor().toNameAndVersion()
         );
 

@@ -42,11 +42,11 @@ configurations {
 
 
 dependencies {
-    implementation "io.github.qishr:cascara-ui:0.2.1"
+    implementation "io.github.qishr:cascara-ui:0.2.2"
 
     // Transitive dependencies of cascara.ui...
-    implementation "io.github.qishr:cascara-common:1.0.0"
-    implementation "io.github.qishr:cascara-common-io:0.2.0"
+    implementation "io.github.qishr:cascara-common:1.1.0"
+    implementation "io.github.qishr:cascara-common-io:0.2.1"
     implementation "io.github.qishr:cascara-lang-yaml:0.2.0"
     implementation "io.github.qishr:cascara-schema:0.2.0"
 }
